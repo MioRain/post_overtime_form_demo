@@ -1,0 +1,19 @@
+h1 {
+  text-align: center;
+}
+
+.col button {
+  width: 100%;
+}
+
+.container {
+  max-width: 380px;
+}
+
+.hidden {
+  display: none;
+}
+
+.none {
+  display: none;
+}

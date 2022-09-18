@@ -1,7 +1,9 @@
+const body = document.querySelector('body')
+const labels = document.querySelectorAll('label')
+const turnDark = document.querySelector('.turn-dark')
+const turnLight = document.querySelector('.turn-light')
 const workdayBtn = document.querySelector('#workday-btn')
 const holidayBtn = document.querySelector('#holiday-btn')
-const tempBtn1 = document.querySelector('#btn-1')
-const tempBtn2 = document.querySelector('#btn-2')
 const form = document.querySelector('form')
 const name = document.querySelector('#name')
 const workNum = document.querySelector('#work-num')
@@ -25,8 +27,9 @@ const overtimeReason = document.querySelector('#overtime-reason')
 const noBreakReason = document.querySelector('.no-break-reason')
 const noBreakReasonInput = document.querySelector('#no-break-reason')
 const saveBtn = document.querySelector('#save-btn')
-const saveTemp1 = document.querySelector('#save-temp1')
-const saveTemp2 = document.querySelector('#save-temp2')
+const submitBtn = document.querySelector('#submit-btn')
+const recordBtn = document.querySelector('#record-btn')
+const record = document.querySelector('#record')
 
 const today = new Date()
 const theDay = new Date() // 建立時間物件
@@ -46,40 +49,119 @@ const yesterdayData = {
 const btnArray = [
   workdayBtn,
   holidayBtn,
-  tempBtn1,
-  tempBtn2
 ]
+
+const status = {
+  whichDay: '',
+  workShift: 'morning',
+  basicData: JSON.parse(localStorage.getItem('basicData')),
+  workdayData: JSON.parse(localStorage.getItem('workdayData')),
+  holidayData: JSON.parse(localStorage.getItem('holidayData')),
+  recordData: JSON.parse(localStorage.getItem('recordData'))
+}
+
+window.onload = function () {
+  if (status.basicData?.workShift === 'night') {
+    turnDark.click()
+  }
+}
 
 btnArray.forEach(btn => {
   btn.addEventListener('click', event => {
-    form.classList.remove('hidden')
+    form.classList.remove('none')
     document.querySelectorAll('button').forEach(btn => {
       btn.classList.remove('btn-dark')
-      saveBtn.classList.remove('none')
-      saveTemp1.classList.add('none')
-      saveTemp2.classList.add('none')
     })
     event.target.classList.add('btn-dark')
   })
 })
 
+turnDark.addEventListener('click', event => {
+  const animateArr = []
+  status.workShift = 'night'
+
+  for (let i = 130; i > 0; i--) {
+    animateArr.push({
+      background: `linear-gradient(325deg, white ${i - 30}%, black ${i}%)`
+    });
+  }
+
+  body.animate(animateArr, {
+    duration: 800
+  });
+
+  body.style.background = "linear-gradient(325deg, white 0%, black 0%)";
+  turnDark.classList.add('none')
+  turnLight.classList.remove('none')
+  startTimeCheck.style.color = 'white'
+  endTimeCheck.style.color = 'white'
+  labels.forEach(label => {
+    label.style.color = 'white'
+  })
+  form.classList.add('none')
+  document.querySelectorAll('button').forEach(btn => {
+    btn.classList.remove('btn-dark')
+  })
+})
+
+turnLight.addEventListener('click', event => {
+  const animateArr = []
+  status.workShift = 'morning'
+
+  for (let i = 130; i > 0; i--) {
+    animateArr.push({
+      background: `linear-gradient(325deg, black ${i - 30}%, white ${i}%)`
+    });
+  }
+
+  body.animate(animateArr, {
+    duration: 800
+  });
+
+  body.style.background = "linear-gradient(325deg, black 0%, white 0%)";
+  turnDark.classList.remove('none')
+  turnLight.classList.add('none')
+  startTimeCheck.style.color = 'black'
+  endTimeCheck.style.color = 'black'
+  labels.forEach(label => {
+    label.style.color = 'black'
+  })
+  form.classList.add('none')
+  document.querySelectorAll('button').forEach(btn => {
+    btn.classList.remove('btn-dark')
+  })
+})
+
 workdayBtn.addEventListener('click', event => {
-  // 帶入 value
-  const saveData = JSON.parse(localStorage.getItem('workdayTemp'))
+  breakTime.addEventListener('input', event => {
+    if (Number(event.target.value) === 0) {
+      noBreakReason.classList.remove('none')
+    } else {
+      noBreakReason.classList.add('none')
+    }
+  })
+
+  form.reset()
+
   let startValue = ''
   let endValue = ''
 
-  if (Number(todayData.hour) >= 8 && Number(todayData.hour) < 20) {
-    startValue = `${todayData.year}-${todayData.month}-${todayData.date}T05:00`
-    startTimeCheck.innerHTML = '上午(AM)'
-    endValue = `${todayData.year}-${todayData.month}-${todayData.date}T08:00`
-    endTimeCheck.innerHTML = '上午(AM)'
-  } else if (Number(todayData.hour) >= 20 && Number(todayData.hour) < 8) {
+  status.whichDay = 'workday'
+
+  if (status.workShift === 'morning') {
     startValue = `${todayData.year}-${todayData.month}-${todayData.date}T17:00`
     startTimeCheck.innerHTML = '下午(PM)'
     endValue = `${todayData.year}-${todayData.month}-${todayData.date}T20:00`
     endTimeCheck.innerHTML = '下午(PM)'
+  } else if (status.workShift === 'night') {
+    startValue = `${todayData.year}-${todayData.month}-${todayData.date}T05:00`
+    startTimeCheck.innerHTML = '上午(AM)'
+    endValue = `${todayData.year}-${todayData.month}-${todayData.date}T08:00`
+    endTimeCheck.innerHTML = '上午(AM)'
   }
+
+  name.value = status.basicData?.name
+  workNum.value = status.basicData?.workNum
 
   type.options.selectedIndex = 0
   startDate.value = startValue
@@ -99,44 +181,65 @@ workdayBtn.addEventListener('click', event => {
   endHour.value = endValue.substr(11, 2)
   endMinute.value = endValue.substr(14, 2)
 
-  if (saveData) {
-    name.value = saveData.name
-    workNum.value = saveData.workNum
-    overtimeReason.value = saveData.overtimeReason
+  if (status.workdayData) {
+    overtimeReason.value = status.workdayData?.overtimeReason
   }
 })
 
 holidayBtn.addEventListener('click', event => {
-  // 帶入 value
-  const saveData = JSON.parse(localStorage.getItem('holidayTemp'))
+  breakTime.addEventListener('input', event => {
+    if (Number(event.target.value) <= 1) {
+      noBreakReason.classList.remove('none')
+    } else {
+      noBreakReason.classList.add('none')
+    }
+  })
+
+  form.reset()
+
   let startValue = ''
   let endValue = ''
 
-  if (Number(todayData.hour) >= 5 && Number(todayData.hour) < 8) {
-    startValue = `${yesterdayData.year}-${yesterdayData.month}-${yesterdayData.date}T20:00`
-    startTimeCheck.innerHTML = '下午(PM)'
-    endValue = `${todayData.year}-${todayData.month}-${todayData.date}T05:00`
-    endTimeCheck.innerHTML = '上午(AM)'
-    breakTime.value = 1
-  } else if (Number(todayData.hour) >= 8 && Number(todayData.hour) < 17) {
-    startValue = `${yesterdayData.year}-${yesterdayData.month}-${yesterdayData.date}T20:00`
-    startTimeCheck.innerHTML = '下午(PM)'
-    endValue = `${todayData.year}-${todayData.month}-${todayData.date}T08:00`
-    endTimeCheck.innerHTML = '上午(AM)'
-    breakTime.value = 2
-  } else if (Number(todayData.hour) >= 17 && Number(todayData.hour) < 20) {
-    startValue = `${todayData.year}-${todayData.month}-${todayData.date}T08:00`
-    startTimeCheck.innerHTML = '上午(AM)'
-    endValue = `${todayData.year}-${todayData.month}-${todayData.date}T17:00`
-    endTimeCheck.innerHTML = '下午(PM)'
-    breakTime.value = 1
-  } else if (Number(todayData.hour) >= 20 && Number(todayData.hour) < 5) {
-    startValue = `${todayData.year}-${todayData.month}-${todayData.date}T08:00`
-    startTimeCheck.innerHTML = '上午(AM)'
-    endValue = `${todayData.year}-${todayData.month}-${todayData.date}T20:00`
-    endTimeCheck.innerHTML = '下午(PM)'
-    breakTime.value = 2
+  status.whichDay = 'holiday'
+
+  if (status.workShift === 'morning') {
+    if (Number(todayData.hour) >= 17 && Number(todayData.hour) < 20) {
+      startValue = `${todayData.year}-${todayData.month}-${todayData.date}T08:00`
+      startTimeCheck.innerHTML = '上午(AM)'
+      endValue = `${todayData.year}-${todayData.month}-${todayData.date}T17:00`
+      endTimeCheck.innerHTML = '下午(PM)'
+      breakTime.value = 1
+    } else if (Number(todayData.hour) >= 20) {
+      startValue = `${todayData.year}-${todayData.month}-${todayData.date}T08:00`
+      startTimeCheck.innerHTML = '上午(AM)'
+      endValue = `${todayData.year}-${todayData.month}-${todayData.date}T20:00`
+      endTimeCheck.innerHTML = '下午(PM)'
+      breakTime.value = 2
+    } else if (Number(todayData.hour) < 17) {
+      startValue = `${yesterdayData.year}-${yesterdayData.month}-${yesterdayData.date}T08:00`
+      startTimeCheck.innerHTML = '上午(AM)'
+      endValue = `${yesterdayData.year}-${yesterdayData.month}-${yesterdayData.date}T20:00`
+      endTimeCheck.innerHTML = '下午(PM)'
+      breakTime.value = 2
+    }
+  } else if (status.workShift === 'night') {
+    if (Number(todayData.hour) >= 5 && Number(todayData.hour) < 8) {
+      startValue = `${yesterdayData.year}-${yesterdayData.month}-${yesterdayData.date}T20:00`
+      startTimeCheck.innerHTML = '下午(PM)'
+      endValue = `${todayData.year}-${todayData.month}-${todayData.date}T05:00`
+      endTimeCheck.innerHTML = '上午(AM)'
+      breakTime.value = 1
+    } else if (Number(todayData.hour) >= 8 || Number(todayData.hour) < 5) {
+      startValue = `${yesterdayData.year}-${yesterdayData.month}-${yesterdayData.date}T20:00`
+      startTimeCheck.innerHTML = '下午(PM)'
+      endValue = `${todayData.year}-${todayData.month}-${todayData.date}T08:00`
+      endTimeCheck.innerHTML = '上午(AM)'
+      breakTime.value = 2
+    }
   }
+
+  name.value = status.basicData?.name
+  workNum.value = status.basicData?.workNum
 
   type.options.selectedIndex = 2
   startDate.value = startValue
@@ -155,10 +258,8 @@ holidayBtn.addEventListener('click', event => {
   endHour.value = endValue.substr(11, 2)
   endMinute.value = endValue.substr(14, 2)
 
-  if (saveData) {
-    name.value = saveData.name
-    workNum.value = saveData.workNum
-    overtimeReason.value = saveData.overtimeReason
+  if (status.holidayData) {
+    overtimeReason.value = status.holidayData?.overtimeReason
   }
 })
 
@@ -201,85 +302,68 @@ endDate.addEventListener('input', event => {
 })
 
 saveBtn.addEventListener('click', event => {
-  const saveData = {
-    name: name.value,
-    workNum: workNum.value,
-    overtimeReason: overtimeReason.value
+  if (status.whichDay === 'workday') {
+    const workdayData = {
+      overtimeReason: overtimeReason.value
+    }
+    const basicData = {
+      name: name.value,
+      workNum: workNum.value,
+      workShift: status.workShift
+    }
+    localStorage.setItem('workdayData', JSON.stringify(workdayData))
+    localStorage.setItem('basicData', JSON.stringify(basicData))
+    alert('儲存成功')
+  } else if (status.whichDay === 'holiday') {
+    const holidayData = {
+      overtimeReason: overtimeReason.value
+    }
+    const basicData = {
+      name: name.value,
+      workNum: workNum.value,
+      workShift: status.workShift
+    }
+    localStorage.setItem('holidayData', JSON.stringify(holidayData))
+    localStorage.setItem('basicData', JSON.stringify(basicData))
+    alert('儲存成功')
   }
-  localStorage.setItem('holidayTemp', JSON.stringify(saveData))
-  alert('儲存成功')
 })
 
-// tempBtn1.addEventListener('click', event => {
-//   form.reset()
-//   saveBtn.classList.add('none')
-//   saveTemp1.classList.remove('none')
-//   saveTemp2.classList.add('none')
-//   const temp = JSON.parse(localStorage.getItem('temp1'))
-//   if (temp) {
-//     name.value = temp.name
-//     workNum.value = temp.workNum
-//     type.value = temp.type
-//     startDate.value = temp.startDate
-//     endDate.value = temp.endDate
-//     breakTime.value = temp.breakTime
-//     overtimeReason.value = temp.overtimeReason
+recordBtn.addEventListener('click', event => {
+  record.innerHTML = ''
+  status.recordData.forEach(data => {
+    record.innerHTML += `
+    <p class='record'>
+      <span>${data[0]}(${data[1]})</span>
+      <br>
+      <span style='color: red; font-weight: bold'>${data[2]} ～ ${data[3]}</span>
+      <br>
+      <span>${data[4]}</span>
+      <br>
+      <span>休息時間(Break Time)：${data[5]} 小時(hrs)</span>
+      <br>
+      <span>加班事由：${data[6]}</span>
+      <br>
+      <span>未休息原因：${data[7]}</span>
+    </p>
+    `
+  })
+})
 
-//     startHour.value = temp.startDate.substr(11, 2)
-//     startMinute.value = temp.startDate.substr(14, 2)
+submitBtn.addEventListener('click', event => {
+  const recordData = status.recordData
+  const recordStore = []
 
-//     endHour.value = temp.endDate.substr(11, 2)
-//     endMinute.value = temp.endDate.substr(14, 2)
-//   }
-// })
+  recordStore.push(name.value)
+  recordStore.push(workNum.value)
+  recordStore.push(startDate.value)
+  recordStore.push(endDate.value)
+  recordStore.push(type.value)
+  recordStore.push(breakTime.value)
+  recordStore.push(overtimeReason.value)
+  recordStore.push(noBreakReasonInput?.value ? noBreakReasonInput.value : '---(Null)')
 
-// tempBtn2.addEventListener('click', event => {
-//   form.reset()
-//   saveBtn.classList.add('none')
-//   saveTemp1.classList.add('none')
-//   saveTemp2.classList.remove('none')
-//   const temp = JSON.parse(localStorage.getItem('temp2'))
-//   if (temp) {
-//     name.value = temp.name
-//     workNum.value = temp.workNum
-//     type.value = temp.type
-//     startDate.value = temp.startDate
-//     endDate.value = temp.endDate
-//     breakTime.value = temp.breakTime
-//     overtimeReason.value = temp.overtimeReason
+  recordData.unshift(recordStore)
 
-//     startHour.value = temp.startDate.substr(11, 2)
-//     startMinute.value = temp.startDate.substr(14, 2)
-
-//     endHour.value = temp.endDate.substr(11, 2)
-//     endMinute.value = temp.endDate.substr(14, 2)
-//   }
-// })
-
-// saveTemp1.addEventListener('click', event => {
-//   const temp1 = {
-//     name: name.value,
-//     workNum: workNum.value,
-//     type: type.value,
-//     startDate: startDate.value,
-//     endDate: endDate.value,
-//     breakTime: breakTime.value,
-//     overtimeReason: overtimeReason.value
-//   }
-//   localStorage.setItem('temp1', JSON.stringify(temp1))
-//   alert('儲存成功')
-// })
-
-// saveTemp2.addEventListener('click', event => {
-//   const temp2 = {
-//     name: name.value,
-//     workNum: workNum.value,
-//     type: type.value,
-//     startDate: startDate.value,
-//     endDate: endDate.value,
-//     breakTime: breakTime.value,
-//     overtimeReason: overtimeReason.value
-//   }
-//   localStorage.setItem('temp2', JSON.stringify(temp2))
-//   alert('儲存成功')
-// })
+  localStorage.setItem('recordData', JSON.stringify(recordData))
+})

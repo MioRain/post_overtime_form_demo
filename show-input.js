@@ -368,6 +368,20 @@ clearBtn.addEventListener('click', event => {
 })
 
 submitBtn.addEventListener('click', event => {
+  const result = confirm(`
+  請確認一下申報資料是否正確？
+  ${startDate.value}
+  ${endDate.value}
+  ${type.value}
+  休息時間：${breakTime.value} hrs
+  加班事由：${overtimeReason.value}
+  未休息原因：${noBreakReason.value ? noBreakReason.value : '---(Null)'}
+  `)
+  if (!result) {
+    event.preventDefault()
+    return
+  }
+
   let recordData = status.recordData ? status.recordData : []
   const recordStore = []
 

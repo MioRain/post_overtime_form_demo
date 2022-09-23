@@ -139,6 +139,7 @@ turnLight.addEventListener('click', event => {
 })
 
 workdayBtn.addEventListener('click', event => {
+  noBreakReason.classList.add('none')
   breakTime.addEventListener('input', event => {
     if (Number(event.target.value) === 0) {
       noBreakReason.classList.remove('none')
@@ -202,6 +203,7 @@ workdayBtn.addEventListener('click', event => {
 })
 
 holidayBtn.addEventListener('click', event => {
+  noBreakReason.classList.add('none')
   breakTime.addEventListener('input', event => {
     if (Number(event.target.value) <= 1) {
       noBreakReason.classList.remove('none')

@@ -370,6 +370,7 @@ clearBtn.addEventListener('click', event => {
 submitBtn.addEventListener('click', event => {
   const result = confirm(`
   請確認一下申報資料是否正確？
+  
   ${startDate.value}
   ${endDate.value}
   ${type.value}

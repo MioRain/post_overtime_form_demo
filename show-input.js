@@ -30,6 +30,7 @@ const saveBtn = document.querySelector('#save-btn')
 const submitBtn = document.querySelector('#submit-btn')
 const recordBtn = document.querySelector('#record-btn')
 const record = document.querySelector('#record')
+const clearBtn = document.querySelector('#clear-btn')
 
 const today = new Date()
 const theDay = new Date() // 建立時間物件
@@ -63,6 +64,11 @@ const status = {
 window.onload = function () {
   if (status.basicData?.workShift === 'night') {
     turnDark.click()
+  }
+
+  if (status.basicData) {
+    name.value = status.basicData?.name
+    workNum.value = status.basicData?.workNum
   }
 }
 
@@ -141,27 +147,36 @@ workdayBtn.addEventListener('click', event => {
     }
   })
 
-  form.reset()
-
   let startValue = ''
   let endValue = ''
 
   status.whichDay = 'workday'
 
   if (status.workShift === 'morning') {
-    startValue = `${todayData.year}-${todayData.month}-${todayData.date}T17:00`
-    startTimeCheck.innerHTML = '下午(PM)'
-    endValue = `${todayData.year}-${todayData.month}-${todayData.date}T20:00`
-    endTimeCheck.innerHTML = '下午(PM)'
+    if (Number(todayData.hour) < 17) {
+      startValue = `${yesterdayData.year}-${yesterdayData.month}-${yesterdayData.date}T17:00`
+      startTimeCheck.innerHTML = '下午(PM)'
+      endValue = `${yesterdayData.year}-${yesterdayData.month}-${yesterdayData.date}T20:00`
+      endTimeCheck.innerHTML = '下午(PM)'
+    } else {
+      startValue = `${todayData.year}-${todayData.month}-${todayData.date}T17:00`
+      startTimeCheck.innerHTML = '下午(PM)'
+      endValue = `${todayData.year}-${todayData.month}-${todayData.date}T20:00`
+      endTimeCheck.innerHTML = '下午(PM)'
+    }
   } else if (status.workShift === 'night') {
-    startValue = `${todayData.year}-${todayData.month}-${todayData.date}T05:00`
-    startTimeCheck.innerHTML = '上午(AM)'
-    endValue = `${todayData.year}-${todayData.month}-${todayData.date}T08:00`
-    endTimeCheck.innerHTML = '上午(AM)'
+    if (Number(todayData.hour) < 5) {
+      startValue = `${yesterdayData.year}-${yesterdayData.month}-${yesterdayData.date}T05:00`
+      startTimeCheck.innerHTML = '上午(AM)'
+      endValue = `${yesterdayData.year}-${yesterdayData.month}-${yesterdayData.date}T08:00`
+      endTimeCheck.innerHTML = '上午(AM)'
+    } else {
+      startValue = `${todayData.year}-${todayData.month}-${todayData.date}T05:00`
+      startTimeCheck.innerHTML = '上午(AM)'
+      endValue = `${todayData.year}-${todayData.month}-${todayData.date}T08:00`
+      endTimeCheck.innerHTML = '上午(AM)'
+    }
   }
-
-  name.value = status.basicData?.name
-  workNum.value = status.basicData?.workNum
 
   type.options.selectedIndex = 0
   startDate.value = startValue
@@ -194,8 +209,6 @@ holidayBtn.addEventListener('click', event => {
       noBreakReason.classList.add('none')
     }
   })
-
-  form.reset()
 
   let startValue = ''
   let endValue = ''
@@ -237,9 +250,6 @@ holidayBtn.addEventListener('click', event => {
       breakTime.value = 2
     }
   }
-
-  name.value = status.basicData?.name
-  workNum.value = status.basicData?.workNum
 
   type.options.selectedIndex = 2
   startDate.value = startValue
@@ -350,8 +360,15 @@ recordBtn.addEventListener('click', event => {
   })
 })
 
+clearBtn.addEventListener('click', event => {
+  localStorage.removeItem('recordData')
+  delete status.recordData
+  record.innerHTML = ''
+  alert('紀錄已清除')
+})
+
 submitBtn.addEventListener('click', event => {
-  const recordData = status.recordData
+  let recordData = status.recordData ? status.recordData : []
   const recordStore = []
 
   recordStore.push(name.value)
